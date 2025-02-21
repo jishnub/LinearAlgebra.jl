@@ -427,14 +427,14 @@ function __muldiag_nonzeroalpha!(out, D::Diagonal, B::UpperOrLowerTriangular, al
 end
 
 @inline function __muldiag_nonzeroalpha_right_dja!(out, A, D::Diagonal, alpha::Number, beta::Number, j)
-    dja = @stable_muladdmul MulAddMul(alpha,false)(D.diag[j])
+    @stable_muladdmul MulAddMul(alpha,false)(D.diag[j])
 end
 @inline function __muldiag_nonzeroalpha_right_dja!(out, A, D::Diagonal, alpha::Bool, beta::Number, j)
-    dja = @stable_muladdmul MulAddMul(true,false)(D.diag[j])
+    @stable_muladdmul MulAddMul(true,false)(D.diag[j])
 end
 @inline function __muldiag_nonzeroalpha_right!(out, A, D::Diagonal, alpha::Number, beta::Number)
     @inbounds for j in axes(A, 2)
-        __muldiag_nonzeroalpha_right_dja!(out, A, D, alpha, beta, j)
+        dja = __muldiag_nonzeroalpha_right_dja!(out, A, D, alpha, beta, j)
         @simd for i in axes(A, 1)
             @stable_muladdmul _modify!(MulAddMul(true,beta), A[i,j] * dja, out, (i,j))
         end
