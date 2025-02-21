@@ -374,18 +374,16 @@ function lmul!(D::Diagonal, T::Tridiagonal)
     return T
 end
 
+@inline function __muldiag_nonzeroalpha_iter!(out, D::Diagonal, B, alpha::Number, beta, (i,j))
+    @stable_muladdmul _modify!(MulAddMul(alpha,beta), D.diag[i] * B[i,j], out, (i,j))
+end
+@inline function __muldiag_nonzeroalpha_iter!(out, D::Diagonal, B, alpha::Bool, beta, (i,j))
+    @stable_muladdmul _modify!(MulAddMul(true,beta), D.diag[i] * B[i,j], out, (i,j))
+end
 @inline function __muldiag_nonzeroalpha!(out, D::Diagonal, B, alpha::Number, beta::Number)
     @inbounds for j in axes(B, 2)
         @simd for i in axes(B, 1)
-            @stable_muladdmul _modify!(MulAddMul(alpha,beta), D.diag[i] * B[i,j], out, (i,j))
-        end
-    end
-    return out
-end
-@inline function __muldiag_nonzeroalpha!(out, D::Diagonal, B, alpha::Bool, beta::Number)
-    @inbounds for j in axes(B, 2)
-        @simd for i in axes(B, 1)
-            @stable_muladdmul _modify!(MulAddMul(true,beta), D.diag[i] * B[i,j], out, (i,j))
+            __muldiag_nonzeroalpha_iter!(out, D, B, alpha, beta, (i,j))
         end
     end
     return out
@@ -428,9 +426,15 @@ function __muldiag_nonzeroalpha!(out, D::Diagonal, B::UpperOrLowerTriangular, al
     return out
 end
 
+@inline function __muldiag_nonzeroalpha_right_dja!(out, A, D::Diagonal, alpha::Number, beta::Number, j)
+    dja = @stable_muladdmul MulAddMul(alpha,false)(D.diag[j])
+end
+@inline function __muldiag_nonzeroalpha_right_dja!(out, A, D::Diagonal, alpha::Bool, beta::Number, j)
+    dja = @stable_muladdmul MulAddMul(true,false)(D.diag[j])
+end
 @inline function __muldiag_nonzeroalpha_right!(out, A, D::Diagonal, alpha::Number, beta::Number)
     @inbounds for j in axes(A, 2)
-        dja = @stable_muladdmul MulAddMul(alpha,false)(D.diag[j])
+        __muldiag_nonzeroalpha_right_dja!(out, A, D, alpha, beta, j)
         @simd for i in axes(A, 1)
             @stable_muladdmul _modify!(MulAddMul(true,beta), A[i,j] * dja, out, (i,j))
         end
