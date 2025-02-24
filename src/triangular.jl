@@ -3068,5 +3068,6 @@ cbrt(A::UpperTriangular{T}) where {T<:Real} = UpperTriangular(_cbrt_quasi_triu!(
 cbrt(A::LowerTriangular{T}) where {T<:Real} = LowerTriangular(_cbrt_quasi_triu!(Matrix{T}(A'))')
 
 # Banded matrix interface
-BandedMatrixInterface.bandwidths(A::UpperOrUnitUpperTriangular) = (0,bandwidths(parent(A),2))
-BandedMatrixInterface.bandwidths(A::LowerOrUnitLowerTriangular) = (bandwidths(parent(A),1),0)
+BandedMatrixInterface.colsupport(A::UpperOrUnitUpperTriangular, j::Integer) = first(colsupport(A.data, j)):min(j, size(A,1))
+BandedMatrixInterface.rowsupport(A::LowerOrUnitLowerTriangular, j::Integer) = j:last(rowsupport(A.data, j))
+
