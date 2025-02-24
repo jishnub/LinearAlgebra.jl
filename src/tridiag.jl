@@ -1189,3 +1189,6 @@ function _opnorm1Inf(A::SymTridiagonal, p::Real)
                 ),
                 normfirst, normend)
 end
+
+# Banded matrix interface
+BandedMatrixInterface.bandwidths(A::Union{SymTridiagonal, Tridiagonal}) = (1,1)

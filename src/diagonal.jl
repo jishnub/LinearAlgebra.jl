@@ -358,8 +358,7 @@ end
 
 function rmul!(A::AbstractMatrix, D::Diagonal)
     matmul_size_check(size(A), size(D))
-    for I in CartesianIndices(A)
-        row, col = Tuple(I)
+    for col in rowsupport(A), row in colsupport(A, col)
         @inbounds A[row, col] *= D.diag[col]
     end
     return A
@@ -406,9 +405,8 @@ end
 
 function lmul!(D::Diagonal, B::AbstractVecOrMat)
     matmul_size_check(size(D), size(B))
-    for I in CartesianIndices(B)
-        row = I[1]
-        @inbounds B[I] = D.diag[row] * B[I]
+    for col in rowsupport(B), row in colsupport(B, col)
+        @inbounds B[row,col] = D.diag[row] * B[row,col]
     end
     return B
 end
@@ -453,8 +451,8 @@ end
 @propagate_inbounds _modify_nonzeroalpha!(x, out, ind, ::Bool, beta) = @stable_muladdmul _modify!(MulAddMul(true,beta), x, out, ind)
 
 @inline function __muldiag_nonzeroalpha!(out, D::Diagonal, B, alpha::Number, beta::Number)
-    @inbounds for j in axes(B, 2)
-        @simd for i in axes(B, 1)
+    @inbounds for j in rowsupport(C)
+        @simd for i in colsupport(C, j)
             _modify_nonzeroalpha!(D.diag[i] * B[i,j], out, (i,j), alpha, beta)
         end
     end
@@ -502,9 +500,9 @@ end
 @inline _djalpha_nonzero(dj, ::Bool) = dj
 
 @inline function __muldiag_nonzeroalpha_right!(out, A, D::Diagonal, alpha::Number, beta::Number)
-    @inbounds for j in axes(A, 2)
+    @inbounds for j in rowsupport(out)
         dja = _djalpha_nonzero(D.diag[j], alpha)
-        @simd for i in axes(A, 1)
+        @simd for i in colsupport(out, j)
             @stable_muladdmul _modify!(MulAddMul(true,beta), A[i,j] * dja, out, (i,j))
         end
     end
@@ -1219,3 +1217,6 @@ end
 
 uppertriangular(D::Diagonal) = D
 lowertriangular(D::Diagonal) = D
+
+# Banded matrix interface
+BandedMatrixInterface.bandwidths(A::Diagonal) = (0,0)

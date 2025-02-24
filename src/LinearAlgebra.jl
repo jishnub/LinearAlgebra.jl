@@ -543,6 +543,9 @@ include("blas.jl")
 include("matmul.jl")
 include("lapack.jl")
 
+include("bandedmatrixinterface.jl")
+using .BandedMatrixInterface
+
 include("dense.jl")
 include("tridiag.jl")
 include("triangular.jl")

@@ -3066,3 +3066,7 @@ end
 # Cube roots of real-valued triangular matrices
 cbrt(A::UpperTriangular{T}) where {T<:Real} = UpperTriangular(_cbrt_quasi_triu!(Matrix{T}(A)))
 cbrt(A::LowerTriangular{T}) where {T<:Real} = LowerTriangular(_cbrt_quasi_triu!(Matrix{T}(A'))')
+
+# Banded matrix interface
+BandedMatrixInterface.bandwidths(A::UpperOrUnitUpperTriangular) = (0,bandwidths(parent(A),2))
+BandedMatrixInterface.bandwidths(A::LowerOrUnitLowerTriangular) = (bandwidths(parent(A),1),0)

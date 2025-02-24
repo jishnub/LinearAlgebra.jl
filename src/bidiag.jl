@@ -1585,3 +1585,8 @@ function Base._sum(A::Bidiagonal, dims::Integer)
     end
     res
 end
+
+# Banded matrix interface
+BandedMatrixInterface.colsupport(A::BandedMatrix, j) = BandedMatrixInterface.colrange(A, j)
+BandedMatrixInterface.rowsupport(A::BandedMatrix, j) = BandedMatrixInterface.rowrange(A, j)
+BandedMatrixInterface.bandwidths(A::Bidiagonal) = A.uplo == 'U' ? (0,1) : (1,0)

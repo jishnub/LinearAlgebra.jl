@@ -626,3 +626,6 @@ function logdet(F::Hessenberg)
     d,s = logabsdet(F)
     return d + log(s)
 end
+
+# Banded matrix interface
+BandedMatrixInterface.bandwidths(A::UpperHessenberg) = (1,bandwidths(parent(A),2))
