@@ -372,6 +372,22 @@ function rmul!(T::Tridiagonal, D::Diagonal)
     end
     return T
 end
+function rmul!(A::UpperOrLowerTriangular{<:Any, StridedMatrix}, D::Diagonal)
+    P = parent(A)
+    isunit = A isa UnitUpperOrUnitLowerTriangular
+    isupper = A isa UpperOrUnitUpperTriangular
+    for col in axes(A,2)
+        rowstart = isupper ? firstindex(A,1) : col+isunit
+        rowstop = isupper ? col-isunit : lastindex(A,1)
+        for row in rowstart:rowstop
+            P[row, col] *= D.diag[col]
+        end
+        if isunit
+            A[col, col] *= D.diag[col]
+        end
+    end
+    return A
+end
 
 function lmul!(D::Diagonal, B::AbstractVecOrMat)
     matmul_size_check(size(D), size(B))
@@ -394,6 +410,22 @@ function lmul!(D::Diagonal, T::Tridiagonal)
         d[i+1] = D.diag[i+1] * d[i+1]
     end
     return T
+end
+function lmul!(D::Diagonal, A::UpperOrLowerTriangular{<:Any, StridedMatrix})
+    P = parent(A)
+    isunit = A isa UnitUpperOrUnitLowerTriangular
+    isupper = A isa UpperOrUnitUpperTriangular
+    for col in axes(A,2)
+        rowstart = isupper ? firstindex(A,1) : col+isunit
+        rowstop = isupper ? col-isunit : lastindex(A,1)
+        for row in rowstart:rowstop
+            P[row, col] = D.diag[col] * P[row, col]
+        end
+        if isunit
+            A[col, col] = D.diag[col] * A[col, col]
+        end
+    end
+    return A
 end
 
 @inline function __muldiag_nonzeroalpha!(out, D::Diagonal, B, alpha::Number, beta::Number)
