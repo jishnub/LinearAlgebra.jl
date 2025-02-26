@@ -372,7 +372,12 @@ function rmul!(T::Tridiagonal, D::Diagonal)
     end
     return T
 end
-function rmul!(A::UpperOrLowerTriangular{<:Any, StridedMatrix}, D::Diagonal)
+for T in [:UpperTriangular, :UnitUpperTriangular,
+        :LowerTriangular, :UnitLowerTriangular]
+    @eval rmul!(A::$T{<:Any, <:StridedMatrix}, D::Diagonal) = _rmul!(A, D)
+    @eval lmul!(D::Diagonal, A::$T{<:Any, <:StridedMatrix}) = _lmul!(D, A)
+end
+function _rmul!(A::UpperOrLowerTriangular, D::Diagonal)
     P = parent(A)
     isunit = A isa UnitUpperOrUnitLowerTriangular
     isupper = A isa UpperOrUnitUpperTriangular
@@ -411,7 +416,7 @@ function lmul!(D::Diagonal, T::Tridiagonal)
     end
     return T
 end
-function lmul!(D::Diagonal, A::UpperOrLowerTriangular{<:Any, StridedMatrix})
+function _lmul!(D::Diagonal, A::UpperOrLowerTriangular)
     P = parent(A)
     isunit = A isa UnitUpperOrUnitLowerTriangular
     isupper = A isa UpperOrUnitUpperTriangular
