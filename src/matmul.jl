@@ -115,8 +115,13 @@ julia> [1 1; 0 1] * [1 0; 1 1]
 # we add an extra level of indirection to avoid ambiguities in *
 function mul(A::AbstractMatrix, B::AbstractMatrix)
     TS = promote_op(matprod, eltype(A), eltype(B))
-    mul!(matprod_dest(A, B, TS), A, B)
+    C = matprod_dest(A, B, TS)
+    mul!(C, A, B)
+    # in most cases, we return C, but some types such as
+    # Bidiagonal re-wrap the result
+    wrap_product(A, B, C)
 end
+wrap_product(@nospecialize(A), @nospecialize(B), C) = C
 
 """
     matprod_dest(A, B, T)

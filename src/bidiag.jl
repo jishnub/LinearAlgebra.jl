@@ -1184,28 +1184,20 @@ function _dibimul!(C::Bidiagonal, A::Diagonal, B::Bidiagonal, _add)
     C
 end
 
-function *(A::UpperOrUnitUpperTriangular, B::Bidiagonal)
-    TS = promote_op(matprod, eltype(A), eltype(B))
-    C = mul!(similar(A, TS, size(A)), A, B)
-    return B.uplo == 'U' ? UpperTriangular(C) : C
+function wrap_product(A::UpperOrUnitUpperTriangular, B::Bidiagonal, C)
+    B.uplo == 'U' ? UpperTriangular(C) : C
 end
 
-function *(A::LowerOrUnitLowerTriangular, B::Bidiagonal)
-    TS = promote_op(matprod, eltype(A), eltype(B))
-    C = mul!(similar(A, TS, size(A)), A, B)
-    return B.uplo == 'L' ? LowerTriangular(C) : C
+function wrap_product(A::LowerOrUnitLowerTriangular, B::Bidiagonal, C)
+    B.uplo == 'L' ? LowerTriangular(C) : C
 end
 
-function *(A::Bidiagonal, B::UpperOrUnitUpperTriangular)
-    TS = promote_op(matprod, eltype(A), eltype(B))
-    C = mul!(similar(B, TS, size(B)), A, B)
-    return A.uplo == 'U' ? UpperTriangular(C) : C
+function wrap_product(A::Bidiagonal, B::UpperOrUnitUpperTriangular, C)
+    A.uplo == 'U' ? UpperTriangular(C) : C
 end
 
-function *(A::Bidiagonal, B::LowerOrUnitLowerTriangular)
-    TS = promote_op(matprod, eltype(A), eltype(B))
-    C = mul!(similar(B, TS, size(B)), A, B)
-    return A.uplo == 'L' ? LowerTriangular(C) : C
+function wrap_product(A::Bidiagonal, B::LowerOrUnitLowerTriangular, C)
+    A.uplo == 'L' ? LowerTriangular(C) : C
 end
 
 function dot(x::AbstractVector, B::Bidiagonal, y::AbstractVector)
