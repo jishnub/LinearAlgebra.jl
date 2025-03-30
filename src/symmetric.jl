@@ -229,7 +229,7 @@ const SelfAdjoint = Union{Symmetric{<:Real}, Hermitian{<:Number}}
 wrappertype(::Union{Symmetric, SymTridiagonal}) = Symmetric
 wrappertype(::Hermitian) = Hermitian
 
-sym_uplo(@nospecialize(A::HermOrSym)) = sym_uplo(A.uplo, false)
+sym_uplo(@nospecialize(A::HermOrSym)) = sym_uplo(A.uplo, Val(false))
 
 size(A::HermOrSym) = size(A.data)
 axes(A::HermOrSym) = axes(A.data)

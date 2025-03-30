@@ -361,7 +361,7 @@ function char_uplo(uplo::Symbol)
     end
 end
 
-function sym_uplo(uplo::Char, check=true)
+function sym_uplo(uplo::Char, check::Val{true}=Val(true))
     if uplo == 'U'
         return :U
     elseif uplo == 'L'
@@ -369,6 +369,9 @@ function sym_uplo(uplo::Char, check=true)
     elseif check
         throw_uplo()
     end
+end
+function sym_uplo(uplo::Char, check::Val{false})
+    uplo == 'U' ? :U : :L
 end
 
 @noinline throw_uplo() = throw(ArgumentError("uplo argument must be either :U (upper) or :L (lower)"))
