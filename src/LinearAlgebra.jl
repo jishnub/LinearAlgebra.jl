@@ -361,12 +361,12 @@ function char_uplo(uplo::Symbol)
     end
 end
 
-function sym_uplo(uplo::Char)
+function sym_uplo(uplo::Char, check=true)
     if uplo == 'U'
         return :U
     elseif uplo == 'L'
         return :L
-    else
+    elseif check
         throw_uplo()
     end
 end
