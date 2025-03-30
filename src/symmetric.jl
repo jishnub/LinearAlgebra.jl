@@ -188,8 +188,6 @@ hermitian_type(::Type{T}) where {T<:Number} = T
 _unwrap(A::Hermitian) = parent(A)
 _unwrap(A::Symmetric) = parent(A)
 
-sym_uplo(@nospecialize(A::HermOrSym)) = sym_uplo(A.uplo, false)
-
 for (S, H) in ((:Symmetric, :Hermitian), (:Hermitian, :Symmetric))
     @eval begin
         $S(A::$S) = A
@@ -230,6 +228,8 @@ const SelfAdjoint = Union{Symmetric{<:Real}, Hermitian{<:Number}}
 
 wrappertype(::Union{Symmetric, SymTridiagonal}) = Symmetric
 wrappertype(::Hermitian) = Hermitian
+
+sym_uplo(@nospecialize(A::HermOrSym)) = sym_uplo(A.uplo, false)
 
 size(A::HermOrSym) = size(A.data)
 axes(A::HermOrSym) = axes(A.data)
