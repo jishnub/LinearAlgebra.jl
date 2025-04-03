@@ -909,7 +909,8 @@ function _mul!(C::AbstractMatrix, A::BiTriSym, B::Diagonal, _add::MulAddMul)
     iszero(n) && return C
     _rmul_or_fill!(C, _add.beta)  # see the same use above
     iszero(_add.alpha) && return C
-    _add_nonzeroalpha = _MulAddMul_nonzeroalpha(_add)
+    # beta is unused in the _bidimul! call, so we set it to false
+    _add_nonzeroalpha = _MulAddMul_nonzeroalpha(_add, Val(false))
     _bidimul!(C, A, B, _add_nonzeroalpha)
     C
 end
