@@ -638,7 +638,7 @@ _mul!(C::AbstractMatrix, A::BiTriSym, B::TriSym, _add::MulAddMul) =
     _bibimul!(C, A, B, _add)
 _mul!(C::AbstractMatrix, A::BiTriSym, B::Bidiagonal, _add::MulAddMul) =
     _bibimul!(C, A, B, _add)
-function _bibimul!(C, A, B, _add::MulAddMul{ais1,bis0}) where {ais1,bis0}
+function _bibimul!(C, A, B, _add::MulAddMul)
     require_one_based_indexing(C)
     matmul_size_check(size(C), size(A), size(B))
     n = size(A,1)
@@ -902,18 +902,15 @@ function __bibimul!(C, A::Bidiagonal, B::Bidiagonal, _add)
     C
 end
 
-function _mul!(C::AbstractMatrix, A::BiTriSym, B::Diagonal, alpha::Number, beta::Number)
+function _mul!(C::AbstractMatrix, A::BiTriSym, B::Diagonal, _add::MulAddMul)
     require_one_based_indexing(C)
     matmul_size_check(size(C), size(A), size(B))
     n = size(A,1)
     iszero(n) && return C
-    _rmul_or_fill!(C, beta)  # see the same use above
-    iszero(alpha) && return C
-    if alpha isa Bool
-        @stable_muladdmul _bidimul!(C, A, B, MulAddMul(true, beta))
-    else
-        @stable_muladdmul _bidimul!(C, A, B, MulAddMul(alpha, beta))
-    end
+    _rmul_or_fill!(C, _add.beta)  # see the same use above
+    iszero(_add.alpha) && return C
+    _add_nonzeroalpha = _MulAddMul_nonzeroalpha(_add)
+    _bidimul!(C, A, B, _add_nonzeroalpha)
     C
 end
 function _bidimul!(C::AbstractMatrix, A::BiTriSym, B::Diagonal, _add::MulAddMul)
@@ -979,16 +976,13 @@ function _bidimul!(C::AbstractMatrix, A::Bidiagonal, B::Diagonal, _add::MulAddMu
     C
 end
 
-function _mul!(C::Bidiagonal, A::Bidiagonal, B::Diagonal, alpha::Number, beta::Number)
+function _mul!(C::Bidiagonal, A::Bidiagonal, B::Diagonal, _add::MulAddMul)
     matmul_size_check(size(C), size(A), size(B))
     n = size(A,1)
     iszero(n) && return C
-    iszero(alpha) && return _rmul_or_fill!(C, beta)
-    if alpha isa Bool
-        @stable_muladdmul _bidimul!(C, A, B, MulAddMul(true, beta))
-    else
-        @stable_muladdmul _bidimul!(C, A, B, MulAddMul(alpha, beta))
-    end
+    iszero(_add.alpha) && return _rmul_or_fill!(C, _add.beta)
+    _add_nonzeroalpha = _MulAddMul_nonzeroalpha(_add)
+    _bidimul!(C, A, B, _add_nonzeroalpha)
     C
 end
 function _bidimul!(C::Bidiagonal, A::Bidiagonal, B::Diagonal, _add::MulAddMul)
@@ -1037,7 +1031,7 @@ function _mul_bitrisym_left!(C::AbstractVecOrMat, A::BiTriSym, B::AbstractVecOrM
     if nA == 1
         A11 = @inbounds A[1,1]
         for i in axes(B, 2)
-            @inbounds _modify!(_add, A11 * B[1,i], C, (1,i))
+            @inbounds _modify!(_add_nonzeroalpha, A11 * B[1,i], C, (1,i))
         end
     else
         _mul_bitrisym!(C, A, B, _add)
