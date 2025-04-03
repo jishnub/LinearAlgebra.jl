@@ -638,7 +638,7 @@ _mul!(C::AbstractMatrix, A::BiTriSym, B::TriSym, _add::MulAddMul) =
     _bibimul!(C, A, B, _add)
 _mul!(C::AbstractMatrix, A::BiTriSym, B::Bidiagonal, _add::MulAddMul) =
     _bibimul!(C, A, B, _add)
-function _bibimul!(C, A, B, _add)
+function _bibimul!(C, A, B, _add::MulAddMul{ais1,bis0}) where {ais1,bis0}
     require_one_based_indexing(C)
     matmul_size_check(size(C), size(A), size(B))
     n = size(A,1)
@@ -647,7 +647,7 @@ function _bibimul!(C, A, B, _add)
     # `_modify!` in the following loop will not update the
     # off-diagonal elements for non-zero beta.
     _rmul_or_fill!(C, _add.beta)
-    iszero(_add.alpha) && return C
+    _iszero_alpha(_add) && return C
     # beta is unused in _bibimul_nonzeroalpha!, so we set it to false
     _add_nonzeroalpha = _MulAddMul_nonzeroalpha(_add, Val(false))
     _bibimul_nonzeroalpha!(C, A, B, _add_nonzeroalpha)
@@ -902,16 +902,18 @@ function __bibimul!(C, A::Bidiagonal, B::Bidiagonal, _add)
     C
 end
 
-function _mul!(C::AbstractMatrix, A::BiTriSym, B::Diagonal, _add::MulAddMul)
+function _mul!(C::AbstractMatrix, A::BiTriSym, B::Diagonal, alpha::Number, beta::Number)
     require_one_based_indexing(C)
     matmul_size_check(size(C), size(A), size(B))
     n = size(A,1)
     iszero(n) && return C
-    _rmul_or_fill!(C, _add.beta)  # see the same use above
-    iszero(_add.alpha) && return C
-    # beta is unused in the _bidimul! call, so we set it to false
-    _add_nonzeroalpha = _MulAddMul_nonzeroalpha(_add, Val(false))
-    _bidimul!(C, A, B, _add_nonzeroalpha)
+    _rmul_or_fill!(C, beta)  # see the same use above
+    iszero(alpha) && return C
+    if alpha isa Bool
+        @stable_muladdmul _bidimul!(C, A, B, MulAddMul(true, beta))
+    else
+        @stable_muladdmul _bidimul!(C, A, B, MulAddMul(alpha, beta))
+    end
     C
 end
 function _bidimul!(C::AbstractMatrix, A::BiTriSym, B::Diagonal, _add::MulAddMul)
@@ -977,13 +979,16 @@ function _bidimul!(C::AbstractMatrix, A::Bidiagonal, B::Diagonal, _add::MulAddMu
     C
 end
 
-function _mul!(C::Bidiagonal, A::Bidiagonal, B::Diagonal, _add::MulAddMul)
+function _mul!(C::Bidiagonal, A::Bidiagonal, B::Diagonal, alpha::Number, beta::Number)
     matmul_size_check(size(C), size(A), size(B))
     n = size(A,1)
     iszero(n) && return C
-    iszero(_add.alpha) && return _rmul_or_fill!(C, _add.beta)
-    _add_nonzeroalpha = _MulAddMul_nonzeroalpha(_add)
-    _bidimul!(C, A, B, _add_nonzeroalpha)
+    iszero(alpha) && return _rmul_or_fill!(C, beta)
+    if alpha isa Bool
+        @stable_muladdmul _bidimul!(C, A, B, MulAddMul(true, beta))
+    else
+        @stable_muladdmul _bidimul!(C, A, B, MulAddMul(alpha, beta))
+    end
     C
 end
 function _bidimul!(C::Bidiagonal, A::Bidiagonal, B::Diagonal, _add::MulAddMul)
