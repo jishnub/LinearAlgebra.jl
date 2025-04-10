@@ -2133,22 +2133,6 @@ function copytrito!(B::AbstractMatrix, A::AbstractMatrix, uplo::AbstractChar)
     end
     return B
 end
-@inline function copytrito_upper!(B, A)
-    # extract the parents for UpperTriangular matrices
-    Bv, Av = uppertridata(B), uppertridata(A)
-    for j in axes(A,2), i in axes(A,1)[begin : min(j,end)]
-        @inbounds Bv[i,j] = Av[i,j]
-    end
-    B
-end
-@inline function copytrito_lower!(B, A)
-    # extract the parents for LowerTriangular matrices
-    Bv, Av = lowertridata(B), lowertridata(A)
-    for j in axes(A,2), i in axes(A,1)[j:end]
-        @inbounds Bv[i,j] = Av[i,j]
-    end
-    B
-end
 # Forward LAPACK-compatible strided matrices to lacpy
 function copytrito!(B::StridedMatrixStride1{T}, A::StridedMatrixStride1{T}, uplo::AbstractChar) where {T<:BlasFloat}
     require_one_based_indexing(A, B)
