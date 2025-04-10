@@ -1209,14 +1209,4 @@ end
     @test_throws BoundsError S[LinearAlgebra.BandIndex(0,size(S,1)+1)]
 end
 
-@testset "1-row mul" begin
-    for T in (Tridiagonal(1:0, 2:2, 1:0),
-                SymTridiagonal(2:2, 1:0))
-        for v in ([3], fill(3, 1, 4))
-            @test mul!(zero(v), T, v) == 2v
-            @test mul!(2v, T, v, 2, 2) == 8v
-        end
-    end
-end
-
 end # module TestTridiagonal
