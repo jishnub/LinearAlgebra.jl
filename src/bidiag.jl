@@ -908,7 +908,7 @@ function _mul!(C::AbstractMatrix, A::BiTriSym, B::Diagonal, _add::MulAddMul)
     n = size(A,1)
     iszero(n) && return C
     _rmul_or_fill!(C, _add.beta)  # see the same use above
-    iszero(_add.alpha) && return C
+    _iszero_alpha(_add) && return C
     # beta is unused in the _bidimul! call, so we set it to false
     _add_nonzeroalpha = _MulAddMul_nonzeroalpha(_add, Val(false))
     _bidimul!(C, A, B, _add_nonzeroalpha)
@@ -981,7 +981,7 @@ function _mul!(C::Bidiagonal, A::Bidiagonal, B::Diagonal, _add::MulAddMul)
     matmul_size_check(size(C), size(A), size(B))
     n = size(A,1)
     iszero(n) && return C
-    iszero(_add.alpha) && return _rmul_or_fill!(C, _add.beta)
+    _iszero_alpha(_add) && return _rmul_or_fill!(C, _add.beta)
     _add_nonzeroalpha = _MulAddMul_nonzeroalpha(_add)
     _bidimul!(C, A, B, _add_nonzeroalpha)
     C
