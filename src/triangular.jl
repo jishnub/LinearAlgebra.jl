@@ -1404,7 +1404,7 @@ function generic_trimatmul!(C::AbstractVecOrMat, uploc, isunitc, tfun::Function,
             for j in axes(B,2)
                 for i in axes(A,1)
                     Cij = (unit ? oA : A[i,i]) * B[i,j]
-                    for k in i + 1:lastindex(B,1)
+                    for k in intersect(i + 1:lastindex(B,1), colsupport(B,j))
                         Cij += A[i,k] * B[k,j]
                     end
                     C[i,j] = Cij
@@ -1414,7 +1414,7 @@ function generic_trimatmul!(C::AbstractVecOrMat, uploc, isunitc, tfun::Function,
             for j in axes(B,2)
                 for i in reverse(axes(B,1))
                     Cij = (unit ? oA : tfun(A[i,i])) * B[i,j]
-                    for k in firstindex(B,1):i - 1
+                    for k in intersect(firstindex(B,1):i - 1, colsupport(B,j))
                         Cij += tfun(A[k,i]) * B[k,j]
                     end
                     C[i,j] = Cij
@@ -1426,7 +1426,7 @@ function generic_trimatmul!(C::AbstractVecOrMat, uploc, isunitc, tfun::Function,
             for j in axes(B,2)
                 for i in reverse(axes(A,1))
                     Cij = (unit ? oA : A[i,i]) * B[i,j]
-                    for k in firstindex(B,1):i - 1
+                    for k in intersect(firstindex(B,1):i - 1, colsupport(B,j))
                         Cij += A[i,k] * B[k,j]
                     end
                     C[i,j] = Cij
@@ -1436,7 +1436,7 @@ function generic_trimatmul!(C::AbstractVecOrMat, uploc, isunitc, tfun::Function,
             for j in axes(B,2)
                 for i in axes(A,2)
                     Cij = (unit ? oA : tfun(A[i,i])) * B[i,j]
-                    for k in i + 1:lastindex(B,1)
+                    for k in intersect(i + 1:lastindex(B,1), colsupport(B,j))
                         Cij += tfun(A[k,i]) * B[k,j]
                     end
                     C[i,j] = Cij
@@ -1457,7 +1457,7 @@ function generic_trimatmul!(C::AbstractVecOrMat, uploc, isunitc, ::Function, xA:
         for j in axes(B,2)
             for i in axes(A,1)
                 Cij = (unit ? oA : conj(A[i,i])) * B[i,j]
-                for k in i + 1:lastindex(B,1)
+                for k in intersect(i + 1:lastindex(B,1), colsupport(B,j))
                     Cij += conj(A[i,k]) * B[k,j]
                 end
                 C[i,j] = Cij
@@ -1467,7 +1467,7 @@ function generic_trimatmul!(C::AbstractVecOrMat, uploc, isunitc, ::Function, xA:
         for j in axes(B,2)
             for i in reverse(axes(A,1))
                 Cij = (unit ? oA : conj(A[i,i])) * B[i,j]
-                for k in firstindex(B,1):i - 1
+                for k in intersect(firstindex(B,1):i - 1, colsupport(B,j))
                     Cij += conj(A[i,k]) * B[k,j]
                 end
                 C[i,j] = Cij
@@ -1487,7 +1487,7 @@ function generic_mattrimul!(C::AbstractMatrix, uploc, isunitc, tfun::Function, A
             for i in axes(A,1)
                 for j in reverse(axes(B,2))
                     Cij = A[i,j] * (unit ? oB : B[j,j])
-                    for k in firstindex(A,2):j - 1
+                    for k in intersect(firstindex(A,2):j - 1, rowsupport(A,i))
                         Cij += A[i,k] * B[k,j]
                     end
                     C[i,j] = Cij
@@ -1497,7 +1497,7 @@ function generic_mattrimul!(C::AbstractMatrix, uploc, isunitc, tfun::Function, A
             for i in axes(A,1)
                 for j in axes(B,1)
                     Cij = A[i,j] * (unit ? oB : tfun(B[j,j]))
-                    for k in j + 1:lastindex(A,2)
+                    for k in intersect(j + 1:lastindex(A,2), rowsupport(A,i))
                         Cij += A[i,k] * tfun(B[j,k])
                     end
                     C[i,j] = Cij
@@ -1509,7 +1509,7 @@ function generic_mattrimul!(C::AbstractMatrix, uploc, isunitc, tfun::Function, A
             for i in axes(A,1)
                 for j in axes(B,2)
                     Cij = A[i,j] * (unit ? oB : B[j,j])
-                    for k in j + 1:lastindex(A,2)
+                    for k in intersect(j + 1:lastindex(A,2), rowsupport(A,i))
                         Cij += A[i,k] * B[k,j]
                     end
                     C[i,j] = Cij
@@ -1519,7 +1519,7 @@ function generic_mattrimul!(C::AbstractMatrix, uploc, isunitc, tfun::Function, A
             for i in axes(A,1)
                 for j in reverse(axes(B,1))
                     Cij = A[i,j] * (unit ? oB : tfun(B[j,j]))
-                    for k in firstindex(A,2):j - 1
+                    for k in intersect(firstindex(A,2):j - 1, rowsupport(A,i))
                         Cij += A[i,k] * tfun(B[j,k])
                     end
                     C[i,j] = Cij
@@ -1540,7 +1540,7 @@ function generic_mattrimul!(C::AbstractMatrix, uploc, isunitc, ::Function, A::Ab
         for i in axes(A,1)
             for j in reverse(axes(B,2))
                 Cij = A[i,j] * (unit ? oB : conj(B[j,j]))
-                for k in firstindex(A,2):j - 1
+                for k in intersect(firstindex(A,2):j - 1, rowsupport(A,i))
                     Cij += A[i,k] * conj(B[k,j])
                 end
                 C[i,j] = Cij
@@ -1550,7 +1550,7 @@ function generic_mattrimul!(C::AbstractMatrix, uploc, isunitc, ::Function, A::Ab
         for i in axes(A,1)
             for j in axes(B,2)
                 Cij = A[i,j] * (unit ? oB : conj(B[j,j]))
-                for k in j + 1:lastindex(A,2)
+                for k in intersect(j + 1:lastindex(A,2), rowsupport(A,i))
                     Cij += A[i,k] * conj(B[k,j])
                 end
                 C[i,j] = Cij
