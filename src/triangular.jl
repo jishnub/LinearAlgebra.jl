@@ -721,8 +721,8 @@ end
 function _triscale!(A::UpperTriangular, B::UpperTriangular, c::Number, _add)
     checksize1(A, B)
     _iszero_alpha(_add) && return _rmul_or_fill!(A, _add.beta)
-    for j in axes(B.data,2)
-        for i in firstindex(B.data,1):j
+    for j in rowsupport(B.data)
+        for i in intersect(firstindex(B.data,1):j, colsupport(B.data,j))
             @inbounds _modify!(_add, B.data[i,j] * c, A.data, (i,j))
         end
     end
@@ -731,8 +731,8 @@ end
 function _triscale!(A::UpperTriangular, c::Number, B::UpperTriangular, _add)
     checksize1(A, B)
     _iszero_alpha(_add) && return _rmul_or_fill!(A, _add.beta)
-    for j in axes(B.data,2)
-        for i in firstindex(B.data,1):j
+    for j in rowsupport(B.data)
+        for i in intersect(firstindex(B.data,1):j, colsupport(B.data,j))
             @inbounds _modify!(_add, c * B.data[i,j], A.data, (i,j))
         end
     end
@@ -741,9 +741,9 @@ end
 function _triscale!(A::UpperOrUnitUpperTriangular, B::UnitUpperTriangular, c::Number, _add)
     checksize1(A, B)
     _iszero_alpha(_add) && return _rmul_or_fill!(A, _add.beta)
-    for j in axes(B.data,2)
+    for j in rowsupport(B.data)
         @inbounds _modify!(_add, c, A, (j,j))
-        for i in firstindex(B.data,1):(j - 1)
+        for i in intersect(firstindex(B.data,1):(j - 1), colsupport(B.data,j))
             @inbounds _modify!(_add, B.data[i,j] * c, A.data, (i,j))
         end
     end
@@ -752,9 +752,9 @@ end
 function _triscale!(A::UpperOrUnitUpperTriangular, c::Number, B::UnitUpperTriangular, _add)
     checksize1(A, B)
     _iszero_alpha(_add) && return _rmul_or_fill!(A, _add.beta)
-    for j in axes(B.data,2)
+    for j in rowsupport(B.data)
         @inbounds _modify!(_add, c, A, (j,j))
-        for i in firstindex(B.data,1):(j - 1)
+        for i in intersect(firstindex(B.data,1):(j - 1), colsupport(B.data,j))
             @inbounds _modify!(_add, c * B.data[i,j], A.data, (i,j))
         end
     end
@@ -763,8 +763,8 @@ end
 function _triscale!(A::LowerTriangular, B::LowerTriangular, c::Number, _add)
     checksize1(A, B)
     _iszero_alpha(_add) && return _rmul_or_fill!(A, _add.beta)
-    for j in axes(B.data,2)
-        for i in j:lastindex(B.data,1)
+    for j in rowsupport(B.data)
+        for i in intersect(j:lastindex(B.data,1), colsupport(B.data,j))
             @inbounds _modify!(_add, B.data[i,j] * c, A.data, (i,j))
         end
     end
@@ -773,8 +773,8 @@ end
 function _triscale!(A::LowerTriangular, c::Number, B::LowerTriangular, _add)
     checksize1(A, B)
     _iszero_alpha(_add) && return _rmul_or_fill!(A, _add.beta)
-    for j in axes(B.data,2)
-        for i in j:lastindex(B.data,1)
+    for j in rowsupport(B)
+        for i in intersect(j:lastindex(B,1), colsupport(B,j))
             @inbounds _modify!(_add, c * B.data[i,j], A.data, (i,j))
         end
     end
@@ -783,9 +783,9 @@ end
 function _triscale!(A::LowerOrUnitLowerTriangular, B::UnitLowerTriangular, c::Number, _add)
     checksize1(A, B)
     _iszero_alpha(_add) && return _rmul_or_fill!(A, _add.beta)
-    for j in axes(B.data,2)
+    for j in rowsupport(B.data)
         @inbounds _modify!(_add, c, A, (j,j))
-        for i in (j + 1):lastindex(B.data,1)
+        for i in intersect((j + 1):lastindex(B.data,1), colsupport(B,j))
             @inbounds _modify!(_add, B.data[i,j] * c, A.data, (i,j))
         end
     end
@@ -794,9 +794,9 @@ end
 function _triscale!(A::LowerOrUnitLowerTriangular, c::Number, B::UnitLowerTriangular, _add)
     checksize1(A, B)
     _iszero_alpha(_add) && return _rmul_or_fill!(A, _add.beta)
-    for j in axes(B.data,2)
+    for j in rowsupport(B.data)
         @inbounds _modify!(_add, c, A, (j,j))
-        for i in (j + 1):lastindex(B.data,1)
+        for i in intersect((j + 1):lastindex(B.data,1), colsupport(B,j))
             @inbounds _modify!(_add, c * B.data[i,j], A.data, (i,j))
         end
     end
@@ -805,8 +805,8 @@ end
 
 function _trirdiv!(A::UpperTriangular, B::UpperOrUnitUpperTriangular, c::Number)
     checksize1(A, B)
-    for j in axes(B,2)
-        for i in firstindex(B,1):j
+    for j in rowsupport(B)
+        for i in colsupport(B,j)
             @inbounds A[i, j] = B[i, j] / c
         end
     end
@@ -814,8 +814,8 @@ function _trirdiv!(A::UpperTriangular, B::UpperOrUnitUpperTriangular, c::Number)
 end
 function _trirdiv!(A::LowerTriangular, B::LowerOrUnitLowerTriangular, c::Number)
     checksize1(A, B)
-    for j in axes(B,2)
-        for i in j:lastindex(B,1)
+    for j in rowsupport(B)
+        for i in colsupport(B,j)
             @inbounds A[i, j] = B[i, j] / c
         end
     end
@@ -823,8 +823,8 @@ function _trirdiv!(A::LowerTriangular, B::LowerOrUnitLowerTriangular, c::Number)
 end
 function _trildiv!(A::UpperTriangular, c::Number, B::UpperOrUnitUpperTriangular)
     checksize1(A, B)
-    for j in axes(B,2)
-        for i in firstindex(B,1):j
+    for j in rowsupport(B)
+        for i in colsupport(B,j)
             @inbounds A[i, j] = c \ B[i, j]
         end
     end
@@ -832,8 +832,8 @@ function _trildiv!(A::UpperTriangular, c::Number, B::UpperOrUnitUpperTriangular)
 end
 function _trildiv!(A::LowerTriangular, c::Number, B::LowerOrUnitLowerTriangular)
     checksize1(A, B)
-    for j in axes(B,2)
-        for i in j:lastindex(B,1)
+    for j in rowsupport(B)
+        for i in colsupport(B,j)
             @inbounds A[i, j] = c \ B[i, j]
         end
     end
@@ -852,11 +852,11 @@ function dot(x::AbstractVector, A::UpperTriangular, y::AbstractVector)
     end
     x₁ = x[1]
     r = dot(x₁, A[1,1], y[1])
-    @inbounds for j in axes(A, 2)[2:end]
+    @inbounds for j in intersect(axes(A, 2)[2:end], rowsupport(A), colsupport(y))
         yj = y[j]
         if !iszero(yj)
             temp = adjoint(A[1,j]) * x₁
-            @simd for i in 2:j
+            @simd for i in intersect(2:j, colsupport(A, j))
                 temp += adjoint(A[i,j]) * x[i]
             end
             r += dot(temp, yj)
@@ -873,11 +873,11 @@ function dot(x::AbstractVector, A::UnitUpperTriangular, y::AbstractVector)
     end
     x₁ = first(x)
     r = dot(x₁, y[1])
-    @inbounds for j in axes(A, 2)[2:end]
+    @inbounds for j in intersect(axes(A, 2)[2:end], rowsupport(A), colsupport(y))
         yj = y[j]
         if !iszero(yj)
             temp = adjoint(A[1,j]) * x₁
-            @simd for i in 2:j-1
+            @simd for i in intersect(2:j-1, colsupport(A, j))
                 temp += adjoint(A[i,j]) * x[i]
             end
             r += dot(temp, yj)
@@ -894,11 +894,11 @@ function dot(x::AbstractVector, A::LowerTriangular, y::AbstractVector)
         return dot(zero(eltype(x)), zero(eltype(A)), zero(eltype(y)))
     end
     r = zero(typeof(dot(first(x), first(A), first(y))))
-    @inbounds for j in axes(A, 2)
+    @inbounds for j in intersect(rowsupport(A), colsupport(y))
         yj = y[j]
         if !iszero(yj)
             temp = adjoint(A[j,j]) * x[j]
-            @simd for i in j+1:lastindex(A,1)
+            @simd for i in colsupport(A,j)
                 temp += adjoint(A[i,j]) * x[i]
             end
             r += dot(temp, yj)
@@ -914,11 +914,11 @@ function dot(x::AbstractVector, A::UnitLowerTriangular, y::AbstractVector)
         return dot(zero(eltype(x)), zero(eltype(A)), zero(eltype(y)))
     end
     r = zero(typeof(dot(first(x), first(y))))
-    @inbounds for j in axes(A, 2)
+    @inbounds for j in intersect(rowsupport(A), colsupport(y))
         yj = y[j]
         if !iszero(yj)
             temp = x[j]
-            @simd for i in j+1:lastindex(A,1)
+            @simd for i in colsupport(A,j)
                 temp += adjoint(A[i,j]) * x[i]
             end
             r += dot(temp, yj)
