@@ -113,7 +113,9 @@ julia> [1 1; 0 1] * [1 0; 1 1]
 """
 (*)(A::AbstractMatrix, B::AbstractMatrix) = mul(A, B)
 # we add an extra level of indirection to avoid ambiguities in *
-function mul(A::AbstractMatrix, B::AbstractMatrix)
+# We also define the core functionality within _mul to reuse the code elsewhere
+mul(A::AbstractMatrix, B::AbstractMatrix) = _mul(A, B)
+function _mul(A::AbstractMatrix, B::AbstractMatrix)
     TS = promote_op(matprod, eltype(A), eltype(B))
     mul!(matprod_dest(A, B, TS), A, B)
 end
