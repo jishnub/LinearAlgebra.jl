@@ -51,11 +51,13 @@ end
 
 # Matrix-vector multiplication
 function (*)(A::StridedMaybeAdjOrTransMat{T}, x::StridedVector{S}) where {T<:BlasFloat,S<:Real}
+    matmul_size_check(size(A), size(x))
     TS = promote_op(matprod, T, S)
     y = isconcretetype(TS) ? convert(AbstractVector{TS}, x) : x
     mul!(similar(x, TS, size(A,1)), A, y)
 end
 function (*)(A::AbstractMatrix{T}, x::AbstractVector{S}) where {T,S}
+    matmul_size_check(size(A), size(x))
     TS = promote_op(matprod, T, S)
     mul!(similar(x, TS, axes(A,1)), A, x)
 end
