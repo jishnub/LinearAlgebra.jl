@@ -1,5 +1,5 @@
 name = "LinearAlgebra"
-uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+uuid = "27e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 version = "1.12.0"
 
 [deps]

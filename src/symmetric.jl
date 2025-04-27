@@ -349,10 +349,8 @@ copy(A::Hermitian) = (Hermitian(parentof_applytri(copy, A), sym_uplo(A.uplo)))
 function copyto!(dest::Symmetric, src::Symmetric)
     if axes(dest) != axes(src)
         @invoke copyto!(dest::AbstractMatrix, src::AbstractMatrix)
-    elseif src.uplo == dest.uplo
-        copytrito!(dest.data, src.data, src.uplo)
     else
-        copytrito!(dest.data, transpose(Base.unalias(dest.data, src.data)), dest.uplo)
+        copy!(dest, src)
     end
     return dest
 end
@@ -360,20 +358,44 @@ end
 function copyto!(dest::Hermitian, src::Hermitian)
     if axes(dest) != axes(src)
         @invoke copyto!(dest::AbstractMatrix, src::AbstractMatrix)
-    elseif src.uplo == dest.uplo
-        copytrito!(dest.data, src.data, src.uplo)
     else
-        copytrito!(dest.data, adjoint(Base.unalias(dest.data, src.data)), dest.uplo)
+        copy!(dest, src)
     end
     return dest
+end
+
+function copy!(dest::Symmetric, src::Symmetric)
+    axes(dest) == axes(src) || throw(ArgumentError(
+        "arrays must have the same axes for copy! (consider using `copyto!`)"))
+    if src.uplo == dest.uplo
+        copytrito!(dest.data, src.data, src.uplo)
+    else
+        copytrito!(dest.data, transpose(src.data), dest.uplo)
+    end
+    dest
+end
+function copy!(dest::Hermitian, src::Hermitian)
+    axes(dest) == axes(src) || throw(ArgumentError(
+        "arrays must have the same axes for copy! (consider using `copyto!`)"))
+    if src.uplo == dest.uplo
+        copytrito!(dest.data, src.data, src.uplo)
+    else
+        copytrito!(dest.data, adjoint(src.data), dest.uplo)
+    end
 end
 
 @propagate_inbounds function copyto!(dest::StridedMatrix, A::HermOrSym)
     if axes(dest) != axes(A)
         @invoke copyto!(dest::StridedMatrix, A::AbstractMatrix)
     else
-        _copyto!(dest, Base.unalias(dest, A))
+        copy!(dest, A)
     end
+    return dest
+end
+function copy!(dest::StridedMatrix, src::HermOrSym)
+    axes(dest) == axes(src) || throw(ArgumentError(
+        "arrays must have the same axes for copy! (consider using `copyto!`)"))
+    _copyto!(dest, src)
     return dest
 end
 @propagate_inbounds function _copyto!(dest::StridedMatrix, A::HermOrSym)
@@ -704,7 +726,7 @@ for f in (:+, :-)
     end
 end
 
-mul(A::HermOrSym, B::HermOrSym) = A * copyto!(similar(parent(B)), B)
+mul(A::HermOrSym, B::HermOrSym) = A * copy!(similar(parent(B)), B)
 # catch a few potential BLAS-cases
 function mul(A::HermOrSym{<:BlasFloat,<:StridedMatrix}, B::AdjOrTrans{<:BlasFloat,<:StridedMatrix})
     T = promote_type(eltype(A), eltype(B))
